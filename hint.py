@@ -1,16 +1,13 @@
 #---------------------------------------------------------
 # \author Anand Ramalingam                                           
-# $Date: 2013/11/07 18:27:20 $
-# $Revision: 1.14 $
+# $Date: 2013/11/07 23:21:00 $
 #---------------------------------------------------------
 import sys
-import pdb
 
 #---------------------------------------------------------
 # class Box
 # - Bounding box over the function
 #---------------------------------------------------------
-
 class Box(object):
 
     def __init__(self, x, y):
@@ -36,9 +33,8 @@ class Box(object):
 
         return result
 
-# this function is a filter
-# this determines if the box intersects the function f()
-    def keep(self, f):
+# does the bounding box intersect with f()?
+    def intersect(self, f):
         x, y  = self._x, self._y
 
         return y['bottom'] <= f(x['left'])
@@ -46,13 +42,13 @@ class Box(object):
 # calculate bounds assuming f is a monotonically decreasing function
     def bounds(self, f):
         x, y  = self._x, self._y
-
         dx    = x['right'] - x['left']
 
-# upper bound and lower bound are just the area of the boxes 
+# upper bound
         dy    = self._ubY(f) - y['bottom']
         ub    = dx*dy
 
+# lower bound
         dy    = self._lbY(f) - y['bottom']
         lb    = dx*dy
 
@@ -96,9 +92,19 @@ class Box(object):
 
         return lbY
 
-# subdivide this box into four boxes 
-    def _getSubdividedXY(self):
+# refine a given box by subdividing into four smaller boxes
+    def refine(self, f):
+        x, y = self._getSubdividedXY()
 
+        # generate four subdivided boxes
+        boxes = [Box(i,j) for i in x for j in y]
+
+        # filter out boxes which do not intersect f
+        boxes  = [b for b in boxes if b.intersect(f)]
+
+        return boxes
+
+    def _getSubdividedXY(self):
         x, y  = self._x, self._y
         c = self.center()
 
@@ -116,25 +122,12 @@ class Box(object):
 
         return [xlc, xcr], [ybc, yct]
 
-    def refine(self, f):
-        x, y = self._getSubdividedXY()
-
-        # generate four subdivided boxes
-        boxes = [Box(i,j) for i in x for j in y]
-
-        # filter out boxes which do not intersect f
-        boxes  = [b for b in boxes if b.keep(f)]
-
-        return boxes
-        
-
-
 #---------------------------------------------------------
 # class Grid
 # - Grid is a collection of bounding boxes 
 # - One can calculate upper and lower bound of bounding box
-# - Sum the all the bounding boxes gives the bounds on
-#       the area of f() over x
+# - Sum over all the bounding boxes 
+#      + this gives bounds on f(x)
 #---------------------------------------------------------
 class Grid(object):
 
@@ -179,22 +172,18 @@ def hint():
         yield g.bounds()
         g.refine()
 
-
 def run(iter):
     print "i, bounds, quality"
-
-    i = 0 
-    for bound in hint():
-
+    for i, bound in enumerate(hint()):
         # quality is defined as the reciprocal of the difference in the bounds
         # on the running the code, observed an interesting pattern in the
         # quality sequence
         quality = 1.0/(bound['ub'] - bound['lb'])
         print i, bound, quality
 
-        i += 1
-        if i > iter:
+        if i == iter:
             break
+
 #------------------------------------------
 # main
 #------------------------------------------
@@ -207,5 +196,5 @@ if __name__ == '__main__':
     # default:
     iter = 5
 
-  print 'iter = ', iter
+  # finally ... run hint benchmark
   run(iter)
