@@ -1,3 +1,6 @@
+
+I tested this with Python 2.7
+
 To run this python file, just type
 
 Usage: python hint.py [iterations]
