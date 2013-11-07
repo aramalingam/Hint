@@ -1,0 +1,8 @@
+To run this python file, just type
+
+Usage: python hint.py [iterations]
+
+Example:
+% python hint.py 4
+
+If iterations is not specified, it defaults to 5
