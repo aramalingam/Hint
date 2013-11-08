@@ -135,7 +135,9 @@ class Grid(object):
         self._f = f
         self._x = x
 
-        # build a square box from which we can calculate bounds
+        # build the initial box 
+        # make use of monotonically decreasing attribute of f()
+        # f(x(right)) <= f(x(left))
         y = { 'bottom' : f(x['right']),
               'top'    : f(x['left']) }
 
